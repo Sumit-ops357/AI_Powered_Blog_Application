@@ -50,7 +50,7 @@ Then update `.env` with your real values:
 SPRING_APPLICATION_NAME=ai-blog
 SERVER_PORT=8081
 SPRING_DATA_MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/<database>?appName=<app-name>
-APP_JWT_SECRET=replace-with-a-long-random-secret
+APP_JWT_SECRET=replace-with-at-least-32-random-characters
 APP_JWT_EXPIRATION_MS=86400000
 APP_UPLOAD_DIR=uploads
 APP_GEMINI_API_KEY=your-gemini-api-key
@@ -58,6 +58,7 @@ APP_GEMINI_MODEL=gemini-2.5-flash
 ```
 
 The real `.env` file is intentionally ignored by Git because it contains secrets.
+`APP_JWT_SECRET` must be at least 32 bytes/characters for the default JWT HMAC signing key.
 
 ## Run Locally
 

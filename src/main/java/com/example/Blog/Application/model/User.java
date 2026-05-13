@@ -1,5 +1,6 @@
 package com.example.Blog.Application.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -19,6 +20,7 @@ public class User {
     @Indexed(unique=true)
     public String email;
 
+    @JsonIgnore
     public String passwordHash;
     public String bio;
     public String avatarUrl;

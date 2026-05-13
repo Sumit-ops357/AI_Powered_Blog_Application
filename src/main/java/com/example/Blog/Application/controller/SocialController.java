@@ -1,6 +1,8 @@
 package com.example.Blog.Application.controller;
 
+import com.example.Blog.Application.dto.Dtos;
 import com.example.Blog.Application.model.Blog;
+import com.example.Blog.Application.model.BlogStatus;
 import com.example.Blog.Application.model.User;
 import com.example.Blog.Application.repository.BlogRepository;
 import com.example.Blog.Application.repository.UserRepository;
@@ -25,6 +27,9 @@ public class SocialController {
     {
         Blog blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
+        if (blog.status != BlogStatus.PUBLISHED) {
+            throw new RuntimeException("Blog not found");
+        }
 
         String userId = authentication.getName();
 
@@ -42,6 +47,9 @@ public class SocialController {
     public Blog toggleBookmark(@PathVariable String blogId, Authentication authentication) {
         Blog blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
+        if (blog.status != BlogStatus.PUBLISHED) {
+            throw new RuntimeException("Blog not found");
+        }
 
         String userId = authentication.getName();
 
@@ -55,7 +63,7 @@ public class SocialController {
     }
 
     @PostMapping("/authors/{authorId}/follow")
-    public User toggleFollow(@PathVariable String authorId, Authentication authentication) {
+    public Dtos.UserResponse toggleFollow(@PathVariable String authorId, Authentication authentication) {
         User user = userRepository.findById(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -65,16 +73,15 @@ public class SocialController {
             user.following.add(authorId);
         }
 
-        return userRepository.save(user);
+        return Dtos.UserResponse.from(userRepository.save(user));
     }
 
     @GetMapping("/profiles/{id}")
-    public User profile(@PathVariable String id)
+    public Dtos.UserResponse profile(@PathVariable String id)
     {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.passwordHash = null; //If u don't do passwordHash as null then, u would have exposed the password directly which would be a threat
-        return user;
+        return Dtos.UserResponse.from(user);
     }
 }

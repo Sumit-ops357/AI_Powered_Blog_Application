@@ -29,27 +29,45 @@ public class AiService {
         }
 
         Map<String, Object> body = Map.of(
-                "model", model,
-                "messages", List.of(
-                        Map.of("role", "system", "content", "You are a helpful writing assistant for bloggers."),
-                        Map.of("role", "user", "content", prompt)
+                "systemInstruction", Map.of(
+                        "parts", List.of(
+                                Map.of("text", "You are a helpful writing assistant for bloggers.")
+                        )
                 ),
-                "temperature", 0.7
+                "contents", List.of(
+                        Map.of(
+                                "role", "user",
+                                "parts", List.of(Map.of("text", prompt))
+                        )
+                ),
+                "generationConfig", Map.of(
+                        "temperature", 0.7
+                )
         );
 
         JsonNode response = restClient.post()
-                .uri("/chat/completions")
-                .header("Authorization", "Bearer " + apiKey)
+                .uri("/v1beta/models/{model}:generateContent", normalizeModel(model))
+                .header("x-goog-api-key", apiKey)
                 .header("Content-Type", "application/json")
                 .body(body)
                 .retrieve()
                 .body(JsonNode.class);
 
         return response
-                .path("choices")
+                .path("candidates")
                 .path(0)
-                .path("message")
                 .path("content")
+                .path("parts")
+                .path(0)
+                .path("text")
                 .asText();
+    }
+
+    private String normalizeModel(String model) {
+        if (model == null || model.isBlank()) {
+            return "gemini-2.5-flash";
+        }
+
+        return model.startsWith("models/") ? model.substring("models/".length()) : model;
     }
 }

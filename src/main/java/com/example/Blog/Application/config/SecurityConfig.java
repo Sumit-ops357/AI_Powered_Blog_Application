@@ -50,7 +50,8 @@ public class SecurityConfig {
                         "/api/blogs/public/**",
                         "/uploads/**"
                 ).permitAll()
-                .requestMatchers("GET", "/api/blogs", "/api/blogs/*", "/api/comments/*").permitAll()
+                .requestMatchers("GET", "/api/blogs/mine").authenticated()
+                .requestMatchers("GET", "/api/blogs", "/api/blogs/{id}", "/api/comments/*").permitAll()
                 .anyRequest().authenticated()
         );
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

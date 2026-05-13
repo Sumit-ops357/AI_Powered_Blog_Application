@@ -46,7 +46,7 @@ public class BlogController {
         {
             blogs = blogRepository.findByCategoryIgnoreCaseAndStatus(category,BlogStatus.PUBLISHED);
         }
-        else if(tag != null && tag.isBlank())
+        else if(tag != null && !tag.isBlank())
         {
             blogs=blogRepository.findByTagsContainingAndStatus(tag, BlogStatus.PUBLISHED);
         }
@@ -71,12 +71,17 @@ public class BlogController {
     }
 
     @GetMapping("/{id}")
-    public Blog getBlog(@PathVariable String id)
+    public Blog getBlog(@PathVariable String id, Authentication authentication)
     {
         Blog blog=blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Blog not found"));
 
-        if(blog.status == BlogStatus.PUBLISHED)
+        boolean isOwner = authentication != null && blog.authorId.equals(authentication.getName());
+        if (blog.status != BlogStatus.PUBLISHED && !isOwner) {
+            throw new RuntimeException("Blog not found");
+        }
+
+        if(blog.status == BlogStatus.PUBLISHED && !isOwner)
         {
             blog.views++;
             blogRepository.save(blog);
@@ -87,6 +92,9 @@ public class BlogController {
 
     @GetMapping("/mine")
     public List<Blog> myBlogs(Authentication authentication) {
+        if (authentication == null) {
+            throw new RuntimeException("Authentication required");
+        }
         return blogRepository.findByAuthorId(authentication.getName());
     }
 
