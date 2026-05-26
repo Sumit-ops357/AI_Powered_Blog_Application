@@ -1,6 +1,7 @@
 package com.example.Blog.Application.config;
 
 import com.example.Blog.Application.security.JwtAuthFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,10 +20,18 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final List<String> allowedOrigins;
+    private final List<String> allowedOriginPatterns;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter)
+    public SecurityConfig(
+            JwtAuthFilter jwtAuthFilter,
+            @Value("${app.cors.allowed-origins}") List<String> allowedOrigins,
+            @Value("${app.cors.allowed-origin-patterns}") List<String> allowedOriginPatterns
+    )
     {
         this.jwtAuthFilter=jwtAuthFilter;
+        this.allowedOrigins = allowedOrigins;
+        this.allowedOriginPatterns = allowedOriginPatterns;
     }
 
     @Bean
@@ -32,16 +41,8 @@ public class SecurityConfig {
 
         http.cors(cors -> cors.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:3002",
-                "http://localhost:5173"
-            ));
-            config.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",
-                "http://127.0.0.1:*"
-            ));
+            config.setAllowedOrigins(allowedOrigins);
+            config.setAllowedOriginPatterns(allowedOriginPatterns);
             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             config.setAllowedHeaders(List.of("*"));
             config.setAllowCredentials(true);
