@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,8 +34,11 @@ public class FileController {
     @Value("${app.upload.dir}")
     private String uploadDir;
 
+    @Value("${app.public-url:}")
+    private String publicUrl;
+
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Map<String, String> upload(@RequestParam MultipartFile file) throws Exception {
+    public Map<String, String> upload(@RequestParam MultipartFile file, HttpServletRequest request) throws Exception {
         if (file.isEmpty()) {
             throw new BadRequestException("File is required");
         }
@@ -64,7 +70,15 @@ public class FileController {
 
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-        return Map.of("url", "http://localhost:8081/uploads/" + filename);
+        return Map.of("url", uploadUrl(filename, request));
+    }
+
+    private String uploadUrl(String filename, HttpServletRequest request) {
+        String baseUrl = publicUrl == null || publicUrl.isBlank()
+                ? ServletUriComponentsBuilder.fromRequestUri(request).replacePath(null).build().toUriString()
+                : publicUrl;
+
+        return baseUrl.replaceAll("/+$", "") + "/uploads/" + filename;
     }
 
     private String extension(String filename) {
